@@ -8,4 +8,13 @@
 .product img{
     width: 100%;
     height: auto;
+    margin-top: 1em;
+}
+
+.footer-text {
+    justify-content: center;
+}
+
+.nav-color {
+    color: white!important;
 }

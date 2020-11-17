@@ -16,6 +16,7 @@ function createProduct(product) {
     newProdDiv.setAttribute('class', 'col');
     newProdDiv.appendChild(subDiv);
     subDiv.addEventListener("click", (event) => {
+        document.location.href="product.html"
         console.log("Somebody clicked on meeeee!!!")
         console.log(event.path[2].getAttribute('data-id'))
     });
