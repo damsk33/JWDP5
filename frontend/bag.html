@@ -34,7 +34,7 @@
 						<a class="nav-link" href="index.html">Accueil</a>
 					  </li>
 					  <li id="bag" class="nav-item">
-						<a class="nav-link" href="bag.html">
+						<a class="nav-link">
 							<img src="assets/shopping-cart.svg"/>
 							<p></p>
 						</a>
@@ -46,10 +46,12 @@
 			</div>
 		</header>
 
-		<div id="product-list" class="main container">
+		<div id="bag-details" class="main container">
 
 		</div>
-
+		<div>
+			<button type="button" class="btn btn-success text-center">Success</button>
+		</div>
 		<footer class="bg-dark mt-3">
 			<div class="container">
 			  <div class="row">
@@ -62,10 +64,10 @@
 			  </div>
 			</div>
 		</footer>
-		<script src="./js/index.js"></script>
+		<script src="./js/bag.js"></script>
 		<script defer>
 			manageBag();
-			loadData();
+			renderBag();
 		</script>
 	</body>
 </html>

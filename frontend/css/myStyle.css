@@ -1,14 +1,89 @@
-.product {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    min-width: 320px;
+html, body {
+    height: 100%;
+    margin: 0px;
 }
+.main {
+    padding-top: 5%;
+    padding-bottom: 5%;
+}
+footer {
+    bottom: 0;
+    width: 100%;
+}
+#bag {
+    cursor: pointer;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+@media (min-width: 992px) {
+    #bag {
+        top: 0;
+        right: 0;
+        position: absolute;
+    }
+}
+#bag a {
+    display: flex;
+    text-align: center
+}
+#bag img {
+    max-width: 40px;
+    margin-right: 10px;
+    filter: invert(0.7);
+}
+#bag:hover img {
+    filter: invert(0.9);
+}
+
+#bag-details {
+    max-height: 500px;
+    overflow: auto;
+}
+
+.product {
+    height: 100%;
+    padding-bottom: 10px;
+    min-width: 250px;
+    max-width: 450px;
+    margin: auto;
+    overflow: hidden;
+}
+#product-list .product {
+    cursor: pointer;
+    background-color: white;
+}
+#product-list .product:hover {
+    background-color: #eeeeee;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+#product-list .row .col.product-container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+#product-details .product {
+    max-width: 800px;
+    margin: auto;
+    padding-bottom: 25px;
+}
+
 .product img{
     width: 100%;
     height: auto;
-    margin-top: 1em;
+    margin-bottom: 15px;
+    border-bottom: 1px black solid;
+}
+.product h3,p,select {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.product select {
+    width: 100%;
+}
+.product button {
+    max-width: 100%;
+    width: 150px;
 }
 
 .footer-text {
