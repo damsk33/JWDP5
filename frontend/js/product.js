@@ -1,7 +1,34 @@
 // Get product list and type
 const backendUrl = 'http://localhost:3000/api/';
 const myProductDetails = document.getElementById('product-details');
-let bag = []; // { productType: '', product: '', personalisation: '', qty: 0 }
+let bag = { items: [], ids: [] }; // [items: [{ productType: '', product: '', personalisation: '', qty: 0 }], ids: [string]}
+
+function generateID(length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let res = '';
+    for (let i = 0; i < length; ++i) {
+        res += chars[Math.floor(Math.random() * (chars.length - 1))]
+    }
+    return res;
+}
+
+// tagName ex => div
+// caracteristics ex => {id: 'myId', class : 'maClasse', value: 'coucou'}
+function createHTMLElement(tagName, caracteristics) {
+    try {
+        let element = document.createElement(tagName);
+        for (key of Object.keys(caracteristics)) {
+            if (key == 'innerHTML') {
+                element.innerHTML = caracteristics[key];
+            } else {
+                element.setAttribute(key, caracteristics[key]);
+            }
+        }
+        return element;
+    } catch (e) {
+        return null;
+    }
+}
 
 function makeRequest(url, method = 'GET') {
     // Create the XHR request
@@ -32,8 +59,8 @@ function makeRequest(url, method = 'GET') {
 
 function getItemCountInBag() {
     let res = 0;
-    for(item of bag) {
-        res+= item.qty;
+    for (item of bag.items) {
+        res += item.qty;
     }
     return res;
 }
@@ -48,16 +75,12 @@ function manageBag() {
 }
 
 function alert(text) {
-    let alert = document.createElement('div')
-    alert.setAttribute('class', 'alert alert-danger')
-    alert.setAttribute('role', 'alert')
-    alert.innerHTML = text
-    myProductDetails.appendChild(alert)
+    myProductDetails.appendChild(createHTMLElement('div', { class: 'alert alert-danger', role: 'alert', innerHTML: text }));
 }
 
 function renderPrice(price) {
     if (typeof price == 'string') {
-        while(price.includes(',')) {
+        while (price.includes(',')) {
             price = price.replace(',', '.');
         }
     }
@@ -70,7 +93,7 @@ function renderPrice(price) {
 
 function addProductToBag(productType, product, personalisation) {
     let alreadyExist = false;
-    for(item of bag) {
+    for (item of bag.items) {
         if (item.product._id == product._id && item.personalisation == personalisation) {
             alreadyExist = true;
             item.qty++;
@@ -78,7 +101,12 @@ function addProductToBag(productType, product, personalisation) {
         }
     }
     if (alreadyExist == false) {
-        bag.push({ productType: productType, product: product, personalisation: personalisation, qty: 1 })
+        let newId = generateID(10);
+        while (bag.ids.includes(newId)) {
+            newId = generateID(10);
+        }
+        bag.ids.push(newId);
+        bag.items.push({ id: newId, productType: productType, product: product, personalisation: personalisation, qty: 1 })
     }
     window.localStorage.setItem('bag', JSON.stringify(bag))
     return getItemCountInBag();
@@ -87,15 +115,10 @@ function addProductToBag(productType, product, personalisation) {
 // Add a list of string in a select as options with a default value 
 function populateSelect(select, optionList, defaultOpt = null) {
     if (defaultOpt != null) {
-        let opt = document.createElement('option');
-        opt.innerHTML = defaultOpt
-        opt.value = 'undefined'
-        select.appendChild(opt) 
+        select.appendChild(createHTMLElement('option', { innerHTML: defaultOpt, value: 'undefined' }));
     }
-    for(option of optionList) {
-        let opt = document.createElement('option');
-        opt.innerHTML = option
-        select.appendChild(opt)
+    for (option of optionList) {
+        select.appendChild(createHTMLElement('option', { innerHTML: option }));
     }
 }
 
@@ -105,55 +128,53 @@ function createProduct(product, productType) {
         return null;
     }
     // if the product have not his personnalisation list
-    if ( (productType == 'cameras' && !product.lenses) || (productType == 'teddies' && !product.colors) || (productType == 'furniture' && !product.varnish) ) {
+    if ((productType == 'cameras' && !product.lenses) || (productType == 'teddies' && !product.colors) || (productType == 'furniture' && !product.varnish)) {
         return null;
     }
 
-    let newProdDiv = document.createElement('div');
-    let subDiv = document.createElement('div');
-    newProdDiv.setAttribute('id', 'product-' + product._id);
-    newProdDiv.setAttribute('data-id', product._id);
-    newProdDiv.setAttribute('class', 'col');
+    let newProdDiv = createHTMLElement('div', { id: 'product-' + product._id, class: 'container' })
+    let subDiv = createHTMLElement('div', { class: 'border border-dark rounded product row' });
     newProdDiv.appendChild(subDiv);
 
-    let img = document.createElement('img');
-    let title = document.createElement('h3');
-    let desc = document.createElement('p');
-    let select = document.createElement('select');
-    select.setAttribute('id', 'product-personalisation');
-    select.setAttribute('class', 'browser-default custom-select');
-    select.addEventListener("change", (event) => {
+    let imgDiv = createHTMLElement('div', { class: 'col' });
+    subDiv.appendChild(imgDiv);
+
+    let infoDiv = createHTMLElement('div', { class: 'col' });
+    subDiv.appendChild(infoDiv);
+
+    let img = createHTMLElement('img', { src: product.imageUrl });
+    imgDiv.appendChild(img);
+
+    let title = createHTMLElement('h3', { innerHTML: product.name + ' - ' + renderPrice(product.price) });
+    infoDiv.appendChild(title);
+
+    let desc = createHTMLElement('p', { innerHTML: product.description });
+    infoDiv.appendChild(desc);
+
+    // Add a row with two columns for the select on left and the 'add to bag' button on right
+    let selectAndButtonRowDiv = createHTMLElement('div', { class: 'row' });
+    infoDiv.appendChild(selectAndButtonRowDiv);
+
+    let selectDiv = createHTMLElement('div', { class: 'col' });
+    selectAndButtonRowDiv.appendChild(selectDiv);
+
+    let buttonDiv = createHTMLElement('div', { class: 'col' });
+    selectAndButtonRowDiv.appendChild(buttonDiv);
+
+    let select = createHTMLElement('select', { id: 'product-personalisation', class: 'browser-default custom-select' });
+    select.addEventListener('change', (event) => {
         document.getElementById('product-add-to-bag').disabled = (event.target.value == null || event.target.value == 'undefined');
     });
-    let button = document.createElement('button');
-    button.setAttribute('id', 'product-add-to-bag');
-    button.setAttribute('class', 'btn btn-outline-dark');
-    button.disabled = true;
-    button.innerHTML = 'Add to bag';
-    button.addEventListener("click", (event) => {
+    selectDiv.appendChild(select);
+
+    let button = createHTMLElement('button', { id: 'product-add-to-bag', class: 'btn btn-outline-dark', disabled: true, innerHTML: 'Add to bag' });
+    button.addEventListener('click', (event) => {
         let countOfItem = addProductToBag(productType, product, select.value);
         document.getElementById('bag').children[0].children[1].innerHTML = countOfItem + '<br/>Panier';
     });
-
-    // Add a row with two columns for the select on left and the "add to bag" button on right
-    let selectAndButtonRowDiv = document.createElement('div');
-    selectAndButtonRowDiv.setAttribute('class', 'row');
-
-    let selectDiv = document.createElement('div');
-    selectDiv.setAttribute('class', 'col container');
-    selectDiv.appendChild(select);
-    selectAndButtonRowDiv.appendChild(selectDiv);
-
-    let buttonDiv = document.createElement('div');
-    buttonDiv.setAttribute('class', 'col container');
     buttonDiv.appendChild(button);
-    selectAndButtonRowDiv.appendChild(buttonDiv);
 
-    subDiv.setAttribute('class', 'border border-dark rounded product');
-    img.setAttribute('src', product.imageUrl);
-    title.innerHTML = product.name + ' - ' + renderPrice(product.price);
-    desc.innerHTML = product.description;
-    switch(productType) {
+    switch (productType) {
         case 'cameras':
             populateSelect(select, product.lenses, 'Choose a lense');
             break;
@@ -161,14 +182,9 @@ function createProduct(product, productType) {
             populateSelect(select, product.colors, 'Choose a color');
             break;
         case 'furniture':
-            populateSelect(select,  product.varnish, 'Choose a varnish');
+            populateSelect(select, product.varnish, 'Choose a varnish');
             break;
     }
-
-    subDiv.appendChild(img);
-    subDiv.appendChild(title);
-    subDiv.appendChild(desc);
-    subDiv.appendChild(selectAndButtonRowDiv);
 
     return newProdDiv;
 }
@@ -178,6 +194,10 @@ function loadData(productId, productType) {
     myProductDetails.innerHTML = '';
     // Create a Promise in order to get all products
     makeRequest(backendUrl + productType + '/' + productId).then(function onSuccess(resolved) {
+        const waiterSpinner = document.getElementById('waiter');
+        if (waiterSpinner != null) {
+            waiterSpinner.remove();
+        }
         // Populate data from the product
         let newProdDiv = createProduct(JSON.parse(resolved.response), productType);
         // If no div, then leave
@@ -187,6 +207,25 @@ function loadData(productId, productType) {
         }
         myProductDetails.appendChild(newProdDiv);
     }).catch(function onError(rejected) {
+        const waiterSpinner = document.getElementById('waiter');
+        if (waiterSpinner != null) {
+            waiterSpinner.remove();
+        }
         alert('Oops, something went wrong. Please <strong>refresh</strong> the page!<br/>' + rejected.statusText)
     });
 }
+
+// When the page is loaded, get data from backend and set the bag
+function onInit() {
+    // Retrieve the prodcut id gived in GET
+    const productId = new URL(document.location.href).searchParams.get('product');
+    const productType = new URL(document.location.href).searchParams.get('type');
+    // If no product id then go back to product list
+    if (productId == null || productType == null) {
+        document.location.href = './index.html';
+    }
+    loadData(productId, productType);
+    manageBag();
+}
+
+onInit();

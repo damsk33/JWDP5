@@ -1,19 +1,35 @@
 html, body {
-    height: 100%;
     margin: 0px;
+    height: 100%;
 }
-.main {
-    padding-top: 5%;
-    padding-bottom: 5%;
+.nav-color {
+    color: white!important;
 }
 footer {
     bottom: 0;
     width: 100%;
 }
+.footer-text {
+    justify-content: center;
+}
+
+/* The bag of the header */
 #bag {
-    cursor: pointer;
     margin-left: 20px;
     margin-right: 20px;
+    cursor: pointer;
+}
+#bag a {
+    display: flex;
+    text-align: center
+}
+#bag img {
+    margin-right: 10px;
+    max-width: 40px;
+    filter: invert(0.7);
+}
+#bag:hover img {
+    filter: invert(0.9);
 }
 @media (min-width: 992px) {
     #bag {
@@ -22,35 +38,17 @@ footer {
         position: absolute;
     }
 }
-#bag a {
-    display: flex;
-    text-align: center
-}
-#bag img {
-    max-width: 40px;
-    margin-right: 10px;
-    filter: invert(0.7);
-}
-#bag:hover img {
-    filter: invert(0.9);
-}
 
-#bag-details {
-    max-height: 500px;
-    overflow: auto;
-}
-
-.product {
-    height: 100%;
+/* The product list in index.html */
+ #product-list .product {
+    margin: auto;
     padding-bottom: 10px;
+    height: 100%;
     min-width: 250px;
     max-width: 450px;
-    margin: auto;
-    overflow: hidden;
-}
-#product-list .product {
-    cursor: pointer;
     background-color: white;
+    overflow: hidden;
+    cursor: pointer;
 }
 #product-list .product:hover {
     background-color: #eeeeee;
@@ -62,16 +60,98 @@ footer {
     margin-top: 20px;
     margin-bottom: 10px;
 }
-#product-details .product {
-    max-width: 800px;
+
+/* The product details in product.html */
+ #product-details .product {
     margin: auto;
     padding-bottom: 25px;
+    padding-top: 25px;
+}
+#product-details .product .row {
+    margin: auto;
+    width: 100%;
+}
+#product-details .product .col {
+    margin-bottom: 20px;
+}
+#product-details .product img {
+    border: 1px black solid;
 }
 
-.product img{
+/* The bag details in bag.html */
+#bag-details {
+    overflow: auto;
+}
+#bag-details .product {
+    margin: auto;
+    padding-top: 10px;
+}
+#bag-details .product .row {
     width: 100%;
-    height: auto;
+    margin: auto;
+}
+#bag-details .product .col {
+    margin-bottom: 10px;
+}
+#bag-details .product img {
+    display: flex;
+    margin: auto;
+    min-width: 150px;
+    max-height: 250px;
+    width: auto;
+    cursor: pointer;
+    border: 1px black solid;
+}
+#bag-details .product img:hover {
+    border: 2px black solid;
+}
+#bag-details .product .info-text {
+    display: flex;
+    margin: auto;
+    justify-content: center;
+}
+#bag-details .product .qty-container {
+    display: flex;
+}
+#bag-details .product .qty-container input {
+    margin-left: 10px;
+    width: 80px;
+}
+/* Special, for product details and bag details */
+@media (max-width: 900px) {
+    #product-details,#bag-details .product .col {
+        min-width: 100%;
+    }
+}
+#checkout {
+    padding-bottom: 5%;
+    padding-left: 20%;
+    padding-right: 20%;
+}
+
+/* Global, in index.html, product.html and bag.html */
+#waiter {
+    display: flex;
+    margin: auto;
+    margin-top: 15%;
+    width: 50px;
+    height: 50px;
+}
+.main {  
+    margin-top: -132px;
+    padding-top: 132px;
+    min-height: 100%;
+
+}
+.main #bag-details,#product-list,#product-details {
+    padding-top: 5%;
+    padding-bottom: 5%;
+}
+.product img{
     margin-bottom: 15px;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
     border-bottom: 1px black solid;
 }
 .product h3,p,select {
@@ -79,17 +159,10 @@ footer {
     margin-right: 10px;
 }
 .product select {
+    margin: auto;
     width: 100%;
 }
 .product button {
-    max-width: 100%;
     width: 150px;
-}
-
-.footer-text {
-    justify-content: center;
-}
-
-.nav-color {
-    color: white!important;
+    max-width: 100%;
 }

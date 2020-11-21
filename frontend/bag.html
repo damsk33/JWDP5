@@ -46,13 +46,42 @@
 			</div>
 		</header>
 
-		<div id="bag-details" class="main container">
+		<div class="main">
+			<div id="bag-details" class="container">
 
+			</div>
+
+			<div id="checkout" class="container">
+				<h4>Total checkout: </h4>
+				<button class="btn btn-outline-dark">Checkout</button>
+			</div>
 		</div>
-		<div>
-			<button type="button" class="btn btn-success text-center">Success</button>
+
+		<!-- Button trigger modal -->
+		<button id="delete-modal-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#delete-modal" style="display:none;"></button>
+		
+		<!-- Modal -->
+		<div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="delete-modalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <h5 class="modal-title">Delete item</h5>
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				  </button>
+				</div>
+				<div class="modal-body">
+				  <p>You are going to delete this product from the list. Are you sure to do that?</p>
+				</div>
+				<div class="modal-footer">
+				  <button type="button" id="delete-validated" class="btn btn-primary" data-dismiss="modal">Yes I don't want it anymore.</button>
+				  <button type="button" id="delete-cancelled" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				</div>
+			  </div>
+			</div>
 		</div>
-		<footer class="bg-dark mt-3">
+
+		<footer class="bg-dark">
 			<div class="container">
 			  <div class="row">
 				<nav class="col navbar navbar-expand navbar-dark">
@@ -64,10 +93,6 @@
 			  </div>
 			</div>
 		</footer>
-		<script src="./js/bag.js"></script>
-		<script defer>
-			manageBag();
-			renderBag();
-		</script>
+		<script src="./js/bag.js" defer></script>
 	</body>
 </html>

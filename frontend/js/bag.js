@@ -1,7 +1,25 @@
 // Get product list and type
 const backendUrl = 'http://localhost:3000/api/';
 const myBagDetails = document.getElementById('bag-details');
-let bag = []; // { productType: '', product: '', personalisation: '', qty: 0 }
+let bag = { items: [], ids: [] }; // [items: [{ productType: '', product: '', personalisation: '', qty: 0 }], ids: [string]}
+
+// tagName ex => div
+// caracteristics ex => {id: 'myId', class : 'maClasse', value: 'coucou'}
+function createHTMLElement(tagName, caracteristics) {
+    try {
+        let element = document.createElement(tagName);
+        for (key of Object.keys(caracteristics)) {
+            if (key == 'innerHTML') {
+                element.innerHTML = caracteristics[key];
+            } else {
+                element.setAttribute(key, caracteristics[key]);
+            }
+        }
+        return element;
+    } catch (e) {
+        return null;
+    }
+}
 
 function makeRequest(url, method = 'GET') {
     // Create the XHR request
@@ -32,8 +50,8 @@ function makeRequest(url, method = 'GET') {
 
 function getItemCountInBag() {
     let res = 0;
-    for(item of bag) {
-        res+= item.qty;
+    for (item of bag.items) {
+        res += item.qty;
     }
     return res;
 }
@@ -48,16 +66,12 @@ function manageBag() {
 }
 
 function alert(text) {
-    let alert = document.createElement('div')
-    alert.setAttribute('class', 'alert alert-danger')
-    alert.setAttribute('role', 'alert')
-    alert.innerHTML = text
-    myBagDetails.appendChild(alert)
+    myBagDetails.appendChild(createHTMLElement('div', { class: 'alert alert-danger', role: 'alert', innerHTML: text }));
 }
 
 function renderPrice(price) {
     if (typeof price == 'string') {
-        while(price.includes(',')) {
+        while (price.includes(',')) {
             price = price.replace(',', '.');
         }
     }
@@ -65,12 +79,23 @@ function renderPrice(price) {
     if (Number.isNaN(Number.parseFloat(price))) {
         return '';
     }
-    return Number.parseFloat(price).toFixed(2).replace('.', ',') + ' €';
+    const beautyPrice = Number.parseFloat(price).toFixed(2).replace('.', ',');
+    let res = '';
+    // We walk on the string from the queue to the head
+    for(i = 0; i < beautyPrice.length; ++i) {
+        res = beautyPrice[beautyPrice.length - i - 1] + res;
+        // If we passed the 3 first caractere and the caractere position % 3 is equal to 0
+        // That mean we are on a couple of 3 caractere and we add a space.
+        if ( i > 2 && (i-2) % 3 == 0 ) {
+            res = ' ' + res;
+        }
+    }
+    return res + ' €';
 }
 
 function getPriceMultQty(price, qty) {
     if (typeof price == 'string') {
-        while(price.includes(',')) {
+        while (price.includes(',')) {
             price = price.replace(',', '.');
         }
     }
@@ -86,44 +111,135 @@ function getPriceMultQty(price, qty) {
     return finalPrice * Number.parseInt(qty);
 }
 
+function getTotalPrice() {
+    let res = 0;
+    for (item of bag.items) {
+        let price = getPriceMultQty(item.product.price, item.qty);
+        if (Number.isNaN(price) == false) {
+            res += price;
+        }
+    }
+    return res;
+}
+
 function createItemInfo(item) {
     // verify the product have all his attributs, if not return
-    if (!item.product|| !item.productType || !item.qty || !item.personalisation) {
+    if (!item.product || !item.productType || !item.qty || !item.personalisation) {
         return null;
     }
-    let newProdDiv = document.createElement('div');
-    newProdDiv.setAttribute('id', 'product-' + item.product._id);
-    newProdDiv.setAttribute('data-id', item.product._id);
-    newProdDiv.setAttribute('class', 'col product-container');
-    
-    let subDiv = document.createElement('div');
-    subDiv.setAttribute('class', 'border border-dark rounded product');
-    subDiv.addEventListener("click", (event) => {
-        document.location.href = './product.html?type=' + item.productType + '&product=' + event.path[2].getAttribute('data-id') ;
-    });
+    let newProdDiv = createHTMLElement('div', { id: 'item-' + item.id, class: 'container' });
+
+    let subDiv = createHTMLElement('div', { class: 'border border-dark rounded product row' });
     newProdDiv.appendChild(subDiv);
 
-    let img = document.createElement('img');
-    let title = document.createElement('h3');
-    let desc = document.createElement('p');
+    let imgDiv = createHTMLElement('div', { class: 'col' });
+    subDiv.appendChild(imgDiv);
 
-    img.setAttribute('src', item.product.imageUrl);
-    img.setAttribute('alt', item.product.name);
-    title.innerHTML = item.product.name + ' - ' + renderPrice(item.product.price) + ' / ' + item.qty + 'p<br/>' + renderPrice(getPriceMultQty(item.product.price, item.qty));
-    desc.innerHTML = item.personalisation;
+    let img = createHTMLElement('img', { src: item.product.imageUrl });
+    img.addEventListener('click', (event) => {
+        document.location.href = './product.html?type=' + item.productType + '&product=' + item.product._id;
+    });
+    imgDiv.appendChild(img);
 
-    subDiv.appendChild(img);
-    subDiv.appendChild(title);
-    subDiv.appendChild(desc);
+    let infoDiv = createHTMLElement('div', { class: 'col info-text' });
+    subDiv.appendChild(infoDiv);
+
+    let subInfoDiv = createHTMLElement('div', {});
+    infoDiv.appendChild(subInfoDiv);
+
+    let title = createHTMLElement('h4', { innerHTML: item.product.name + ' (' + item.personalisation + ')<br/>Price: ' + renderPrice(item.product.price) });
+    subInfoDiv.appendChild(title);
+
+    let qtyContainer = createHTMLElement('div', { class: 'qty-container' });
+    subInfoDiv.appendChild(qtyContainer);
+
+    let qtyh = createHTMLElement('h4', { innerHTML: 'Qty: ' });
+    qtyContainer.appendChild(qtyh);
+
+    let total = createHTMLElement('h4', { innerHTML: '<br/>Total: ' + renderPrice(getPriceMultQty(item.product.price, item.qty)) });
+    subInfoDiv.appendChild(total);
+
+    let qtyInput = createHTMLElement('input', { id: 'input-qty-' + item.id, class: 'qty-input', type: 'number', value: item.qty, min: 0 });
+    qtyInput.addEventListener('change', (event) => {
+        let numQty = Number.parseInt(event.target.value);
+        if (numQty < 0) {
+            numQty = 0;
+        }
+
+        for (anItem of bag.items) {
+            if (anItem.id == item.id) {
+                if (Number.isNaN(numQty) == false) {
+                    anItem.qty = numQty;
+                } else {
+                    qtyInput.value = anItem.qty;
+                }
+            }
+        }
+        if (numQty > 0) {
+            total.innerHTML = '<br/>Total: ' + renderPrice(getPriceMultQty(item.product.price, numQty));
+        } else if (Number.isNaN(numQty) == false) {
+            document.getElementById('delete-modal-button').click();
+        }
+        // Save it in the localstorage
+        window.localStorage.setItem('bag', JSON.stringify(bag));
+        // Update the bag in the header
+        document.getElementById('bag').children[0].children[1].innerHTML = getItemCountInBag() + '<br/>Panier';
+        document.getElementById('checkout').children[0].innerHTML = 'Total checkout: ' + renderPrice(getTotalPrice());
+    });
+    qtyContainer.appendChild(qtyInput);
 
     return newProdDiv;
 }
 
 function renderBag() {
-    for(item of bag) {
+    for (item of bag.items) {
         let itemDiv = createItemInfo(item);
         if (itemDiv != null) {
             myBagDetails.appendChild(itemDiv);
         }
     }
 }
+
+// When the page is loaded
+function onInit() {
+    manageBag();
+    renderBag();
+    let deleteValidated = document.getElementById('delete-validated');
+    let deleteCancelled = document.getElementById('delete-cancelled');
+    deleteValidated.addEventListener('click', (event) => {
+        let theItem = null;
+        for (item of bag.items) {
+            if (item.qty == 0) {
+                theItem = item;
+            }
+        }
+        if (theItem != null) {
+            bag.items = bag.items.filter(item => item.id != theItem.id);
+            bag.ids = bag.ids.filter(id => id != theItem.id);
+            document.getElementById('item-' + theItem.id).remove();
+            window.localStorage.setItem('bag', JSON.stringify(bag));
+            document.getElementById('checkout').children[0].innerHTML = 'Total checkout: ' + renderPrice(getTotalPrice());
+        }
+    });
+    deleteCancelled.addEventListener('click', (event) => {
+        for (item of bag.items) {
+            if (item.qty == 0) {
+                item.qty = 1;
+                let input = document.getElementById('input-qty-' + item.id);
+                if (input != null) {
+                    input.value = 1;
+                }
+            }
+        }
+        window.localStorage.setItem('bag', JSON.stringify(bag));
+        document.getElementById('checkout').children[0].innerHTML = 'Total checkout: ' + renderPrice(getTotalPrice());
+    });
+
+    let checkoutButton = document.getElementById('checkout').children[1];
+    checkoutButton.addEventListener('click', (event) => {
+        console.log('checkout !!' + event)
+    });
+    document.getElementById('checkout').children[0].innerHTML = 'Total checkout: ' + renderPrice(getTotalPrice());
+}
+
+onInit();
