@@ -1,89 +1,6 @@
-// Get product list and type
-const backendUrl = 'http://localhost:3000/api/';
-let productType = 'cameras'; // 'cameras', 'teddies', 'furniture'
+// createProduct(), addProductToList(), loadData(), onInit()
 const numberOfProductPerRow = 2; // 1, 2 or 3
 const myProductList = document.getElementById('product-list');
-let bag = { items: [], ids: [] }; // [items: [{ productType: '', product: '', personalisation: '', qty: 0 }], ids: [string]}
-
-// tagName ex => div
-// caracteristics ex => {id: 'myId', class : 'maClasse', value: 'coucou'}
-function createHTMLElement(tagName, caracteristics) {
-    try {
-        let element = document.createElement(tagName);
-        for (key of Object.keys(caracteristics)) {
-            if (key == 'innerHTML') {
-                element.innerHTML = caracteristics[key];
-            } else {
-                element.setAttribute(key, caracteristics[key]);
-            }
-        }
-        return element;
-    } catch (e) {
-        return null;
-    }
-}
-
-function makeRequest(url, method = 'GET') {
-    // Create the XHR request
-    let request = new XMLHttpRequest();
-    // Return it as a Promise
-    return new Promise(function (resolve, reject) {
-        // Setup our listener to process compeleted requests
-        request.onload = () => {
-            if (request.status >= 200 && request.status < 300) {
-                resolve(request);
-            } else {
-                reject({
-                    status: request.status,
-                    statusText: request.statusText
-                });
-            }
-        };
-        request.onerror = () => reject({
-            status: request.status,
-            statusText: request.statusText
-        });;
-        // Setup our HTTP request
-        request.open(method, url, true);
-        // Send the request
-        request.send();
-    });
-};
-
-function alert(text) {
-    myProductList.appendChild(createHTMLElement('div', { class: 'alert alert-danger', role: 'alert', innerHTML: text }));
-}
-
-// Render a given price
-function renderPrice(price) {
-    if (typeof price == 'string') {
-        while (price.includes(',')) {
-            price = price.replace(',', '.');
-        }
-    }
-    // If the price param is not a Number
-    if (Number.isNaN(Number.parseFloat(price))) {
-        return '';
-    }
-    return Number.parseFloat(price).toFixed(2).replace('.', ',') + ' €';
-}
-
-function getItemCountInBag() {
-    let res = 0;
-    for (item of bag.items) {
-        res += item.qty;
-    }
-    return res;
-}
-
-function manageBag() {
-    let theBag = window.localStorage.getItem('bag');
-    if (theBag != null) {
-        bag = JSON.parse(theBag);
-        let countInBag = getItemCountInBag();
-        document.getElementById('bag').children[0].children[1].innerHTML = countInBag + '<br/>Panier';
-    }
-}
 
 // Create product in a div and return the pointer to the new div
 function createProduct(product) {
@@ -139,34 +56,38 @@ function addProductToList(product) {
     }
 }
 
+function completeLastRowOfProducts() {
+ // Get the last existing row ( - 1 because index start at 0)
+ let lastRowDiv = myProductList.children[myProductList.children.length - 1];
+ let emptyProductDiv;
+ // Check a second time in case of null div from corrupted product
+ while (lastRowDiv.children.length < numberOfProductPerRow) {
+     // Create empty col for rendering
+     emptyProductDiv = createHTMLElement('div', { class: 'col', style: 'min-width: 360px' });
+     lastRowDiv.append(emptyProductDiv);
+ }
+}
+
 // Call at 1st, load data from backend and populate frontend
 function loadData() {
     myProductList.innerHTML = '';
     // Create a Promise in order to get all products
-    makeRequest(backendUrl + productType).then(function onSuccess(resolved) {
+    makeHTTPRequest(backendUrl + productType).then(function onSuccess(resolved) {
         // Populate with products
-        for (product of JSON.parse(resolved.response)) {
+        for (product of JSON.parse(resolved.responseText)) {
             addProductToList(product);
         }
         const waiterSpinner = document.getElementById('waiter');
         if (waiterSpinner != null) {
             waiterSpinner.remove();
         }
-        // Get the last existing row ( - 1 because index start at 0)
-        let rowDiv = myProductList.children[myProductList.children.length - 1];
-        let emptyProductDiv;
-        // Check a second time in case of null div from corrupted product
-        while (rowDiv.children.length < numberOfProductPerRow) {
-            // Create empty col for rendering
-            emptyProductDiv = createHTMLElement('div', { class: 'col', style: 'min-width: 360px' });
-            rowDiv.append(emptyProductDiv);
-        }
+        completeLastRowOfProducts()
     }).catch(function onError(rejected) {
         const waiterSpinner = document.getElementById('waiter');
         if (waiterSpinner != null) {
             waiterSpinner.remove();
         }
-        alert('Oops, something went wrong. Please <strong>refresh</strong> the page!<br/>' + rejected.statusText);
+        alert(myProductList, 'Oops, something went wrong. Please <strong>refresh</strong> the page!<br/>' + rejected.statusText);
     });
 }
 

@@ -1,99 +1,11 @@
-// Get product list and type
-const backendUrl = 'http://localhost:3000/api/';
+// addProductToBag(), populateSelect(), createProduct(), loadData(), onInit()
 const myProductDetails = document.getElementById('product-details');
-let bag = { items: [], ids: [] }; // [items: [{ productType: '', product: '', personalisation: '', qty: 0 }], ids: [string]}
-
-function generateID(length) {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let res = '';
-    for (let i = 0; i < length; ++i) {
-        res += chars[Math.floor(Math.random() * (chars.length - 1))]
-    }
-    return res;
-}
-
-// tagName ex => div
-// caracteristics ex => {id: 'myId', class : 'maClasse', value: 'coucou'}
-function createHTMLElement(tagName, caracteristics) {
-    try {
-        let element = document.createElement(tagName);
-        for (key of Object.keys(caracteristics)) {
-            if (key == 'innerHTML') {
-                element.innerHTML = caracteristics[key];
-            } else {
-                element.setAttribute(key, caracteristics[key]);
-            }
-        }
-        return element;
-    } catch (e) {
-        return null;
-    }
-}
-
-function makeRequest(url, method = 'GET') {
-    // Create the XHR request
-    let request = new XMLHttpRequest();
-    // Return it as a Promise
-    return new Promise(function (resolve, reject) {
-        // Setup our listener to process compeleted requests
-        request.onload = () => {
-            if (request.status >= 200 && request.status < 300) {
-                resolve(request);
-            } else {
-                reject({
-                    status: request.status,
-                    statusText: request.statusText
-                });
-            }
-        };
-        request.onerror = () => reject({
-            status: request.status,
-            statusText: request.statusText
-        });;
-        // Setup our HTTP request
-        request.open(method, url, true);
-        // Send the request
-        request.send();
-    });
-};
-
-function getItemCountInBag() {
-    let res = 0;
-    for (item of bag.items) {
-        res += item.qty;
-    }
-    return res;
-}
-
-function manageBag() {
-    let theBag = window.localStorage.getItem('bag');
-    if (theBag != null) {
-        bag = JSON.parse(theBag);
-        let countInBag = getItemCountInBag();
-        document.getElementById('bag').children[0].children[1].innerHTML = countInBag + '<br/>Panier';
-    }
-}
-
-function alert(text) {
-    myProductDetails.appendChild(createHTMLElement('div', { class: 'alert alert-danger', role: 'alert', innerHTML: text }));
-}
-
-function renderPrice(price) {
-    if (typeof price == 'string') {
-        while (price.includes(',')) {
-            price = price.replace(',', '.');
-        }
-    }
-    // If the price param is not a Number
-    if (Number.isNaN(Number.parseFloat(price))) {
-        return '';
-    }
-    return Number.parseFloat(price).toFixed(2).replace('.', ',') + ' €';
-}
 
 function addProductToBag(productType, product, personalisation) {
     let alreadyExist = false;
+    // For each items { productType, product, personalisation } of the bag
     for (item of bag.items) {
+        // If the item have the same product id and the same personnalisation
         if (item.product._id == product._id && item.personalisation == personalisation) {
             alreadyExist = true;
             item.qty++;
@@ -193,16 +105,16 @@ function createProduct(product, productType) {
 function loadData(productId, productType) {
     myProductDetails.innerHTML = '';
     // Create a Promise in order to get all products
-    makeRequest(backendUrl + productType + '/' + productId).then(function onSuccess(resolved) {
+    makeHTTPRequest(backendUrl + productType + '/' + productId).then(function onSuccess(resolved) {
         const waiterSpinner = document.getElementById('waiter');
         if (waiterSpinner != null) {
             waiterSpinner.remove();
         }
         // Populate data from the product
-        let newProdDiv = createProduct(JSON.parse(resolved.response), productType);
+        let newProdDiv = createProduct(JSON.parse(resolved.responseText), productType);
         // If no div, then leave
         if (newProdDiv == null) {
-            alert('Oops, something went wrong..');
+            alert(myProductDetails, 'Oops, something went wrong..');
             return;
         }
         myProductDetails.appendChild(newProdDiv);
@@ -211,7 +123,7 @@ function loadData(productId, productType) {
         if (waiterSpinner != null) {
             waiterSpinner.remove();
         }
-        alert('Oops, something went wrong. Please <strong>refresh</strong> the page!<br/>' + rejected.statusText)
+        alert(myProductDetails, 'Oops, something went wrong. Please <strong>refresh</strong> the page!<br/>' + rejected.statusText)
     });
 }
 

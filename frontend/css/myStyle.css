@@ -128,6 +128,33 @@ footer {
     padding-left: 20%;
     padding-right: 20%;
 }
+#checkout-formular {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    overflow: hidden;
+}
+#checkout-formular {
+    height: 0px;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+#checkout-formular.show {
+    height: 500px;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+
+/* The bag details in bag.html */
+#confirmation-details #bill {
+    padding-top: 5%;
+    padding-bottom: 5%;
+    min-width: fit-content;
+}
+#confirmation-details table {
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
 
 /* Global, in index.html, product.html and bag.html */
 #waiter {
@@ -143,7 +170,7 @@ footer {
     min-height: 100%;
 
 }
-.main #bag-details,#product-list,#product-details {
+.main #bag-details,#product-list,#product-details,#confirmation-details {
     padding-top: 5%;
     padding-bottom: 5%;
 }

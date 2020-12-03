@@ -1,126 +1,5 @@
-// Get product list and type
-const backendUrl = 'http://localhost:3000/api/';
+// createItemInfo(), onInit()
 const myBagDetails = document.getElementById('bag-details');
-let bag = { items: [], ids: [] }; // [items: [{ productType: '', product: '', personalisation: '', qty: 0 }], ids: [string]}
-
-// tagName ex => div
-// caracteristics ex => {id: 'myId', class : 'maClasse', value: 'coucou'}
-function createHTMLElement(tagName, caracteristics) {
-    try {
-        let element = document.createElement(tagName);
-        for (key of Object.keys(caracteristics)) {
-            if (key == 'innerHTML') {
-                element.innerHTML = caracteristics[key];
-            } else {
-                element.setAttribute(key, caracteristics[key]);
-            }
-        }
-        return element;
-    } catch (e) {
-        return null;
-    }
-}
-
-function makeRequest(url, method = 'GET') {
-    // Create the XHR request
-    let request = new XMLHttpRequest();
-    // Return it as a Promise
-    return new Promise(function (resolve, reject) {
-        // Setup our listener to process compeleted requests
-        request.onload = () => {
-            if (request.status >= 200 && request.status < 300) {
-                resolve(request);
-            } else {
-                reject({
-                    status: request.status,
-                    statusText: request.statusText
-                });
-            }
-        };
-        request.onerror = () => reject({
-            status: request.status,
-            statusText: request.statusText
-        });;
-        // Setup our HTTP request
-        request.open(method, url, true);
-        // Send the request
-        request.send();
-    });
-};
-
-function getItemCountInBag() {
-    let res = 0;
-    for (item of bag.items) {
-        res += item.qty;
-    }
-    return res;
-}
-
-function manageBag() {
-    let theBag = window.localStorage.getItem('bag');
-    if (theBag != null) {
-        bag = JSON.parse(theBag);
-        let countInBag = getItemCountInBag();
-        document.getElementById('bag').children[0].children[1].innerHTML = countInBag + '<br/>Panier';
-    }
-}
-
-function alert(text) {
-    myBagDetails.appendChild(createHTMLElement('div', { class: 'alert alert-danger', role: 'alert', innerHTML: text }));
-}
-
-function renderPrice(price) {
-    if (typeof price == 'string') {
-        while (price.includes(',')) {
-            price = price.replace(',', '.');
-        }
-    }
-    // If the price param is not a Number
-    if (Number.isNaN(Number.parseFloat(price))) {
-        return '';
-    }
-    const beautyPrice = Number.parseFloat(price).toFixed(2).replace('.', ',');
-    let res = '';
-    // We walk on the string from the queue to the head
-    for(i = 0; i < beautyPrice.length; ++i) {
-        res = beautyPrice[beautyPrice.length - i - 1] + res;
-        // If we passed the 3 first caractere and the caractere position % 3 is equal to 0
-        // That mean we are on a couple of 3 caractere and we add a space.
-        if ( i > 2 && (i-2) % 3 == 0 ) {
-            res = ' ' + res;
-        }
-    }
-    return res + ' €';
-}
-
-function getPriceMultQty(price, qty) {
-    if (typeof price == 'string') {
-        while (price.includes(',')) {
-            price = price.replace(',', '.');
-        }
-    }
-    // If the price param is not a Number
-    if (Number.isNaN(Number.parseFloat(price))) {
-        return '';
-    }
-    // If the qty param is not a Number
-    if (Number.isNaN(Number.parseInt(qty))) {
-        return '';
-    }
-    let finalPrice = Number.parseFloat(Number.parseFloat(price).toFixed(2));
-    return finalPrice * Number.parseInt(qty);
-}
-
-function getTotalPrice() {
-    let res = 0;
-    for (item of bag.items) {
-        let price = getPriceMultQty(item.product.price, item.qty);
-        if (Number.isNaN(price) == false) {
-            res += price;
-        }
-    }
-    return res;
-}
 
 function createItemInfo(item) {
     // verify the product have all his attributs, if not return
@@ -191,19 +70,18 @@ function createItemInfo(item) {
     return newProdDiv;
 }
 
-function renderBag() {
+// When the page is loaded
+function onInit() {
+    manageBag();
+    
+    //Render the bag
     for (item of bag.items) {
         let itemDiv = createItemInfo(item);
         if (itemDiv != null) {
             myBagDetails.appendChild(itemDiv);
         }
     }
-}
 
-// When the page is loaded
-function onInit() {
-    manageBag();
-    renderBag();
     let deleteValidated = document.getElementById('delete-validated');
     let deleteCancelled = document.getElementById('delete-cancelled');
     deleteValidated.addEventListener('click', (event) => {
@@ -237,7 +115,13 @@ function onInit() {
 
     let checkoutButton = document.getElementById('checkout').children[1];
     checkoutButton.addEventListener('click', (event) => {
-        console.log('checkout !!' + event)
+        const checkoutFormular = document.getElementById('checkout-formular');
+        if (checkoutFormular.getAttribute('class')) {
+            checkoutFormular.setAttribute('class', '');
+        } else {
+
+            checkoutFormular.setAttribute('class', 'show');
+        }
     });
     document.getElementById('checkout').children[0].innerHTML = 'Total checkout: ' + renderPrice(getTotalPrice());
 }
